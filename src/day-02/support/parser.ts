@@ -3,7 +3,7 @@ import { FailureResult, Result, failure, ok } from './result';
 
 export const enum AstNodeKind {
     GameLog = 'GameLog',
-    GameResult = 'GameResult',
+    GameRecord = 'GameRecord',
     DrawResult = 'DrawResult',
     CubeResult = 'CubeResult',
 }
@@ -23,19 +23,19 @@ abstract class AstNode {
 }
 
 export class GameLog extends AstNode {
-    readonly games: GameResult[];
+    readonly games: GameRecord[];
 
-    constructor(...games: GameResult[]) {
+    constructor(...games: GameRecord[]) {
         super(AstNodeKind.GameLog);
         this.games = games ?? [];
     }
 }
 
-export class GameResult extends AstNode {
+export class GameRecord extends AstNode {
     readonly draws: DrawResult[];
 
     constructor(...draws: DrawResult[]) {
-        super(AstNodeKind.GameResult);
+        super(AstNodeKind.GameRecord);
         this.draws = draws;
     }
 }
@@ -79,27 +79,44 @@ export class Parser {
     }
 
     #gameLog(): ParserResult<GameLog> {
-        const results = this.#gameResults();
+        const results = this.#gameRecords();
         if (results.isFailure()) {
             return results;
         }
         return ok(new GameLog(...results.value));
     }
 
-    #gameResults(): ParserResult<GameResult[]> {
-        const result = this.#gameResult();
+    #gameRecords(): ParserResult<GameRecord[]> {
+        const result = this.#gameRecord();
         if (result.isFailure()) {
             return result;
         }
         return ok([result.value]);
     }
 
-    #gameResult(): ParserResult<GameResult> {
+    #gameRecord(): ParserResult<GameRecord> {
+        let currentToken = this.#currentToken;
+        if (currentToken.type !== TokenType.Text && currentToken.value !== 'Game') {
+            return this.#error('"Game"', currentToken);
+        }
+        this.#advance();
+
+        const gameId = this.#positiveNumber();
+        if (gameId.isFailure()) {
+            return gameId;
+        }
+
+        currentToken = this.#currentToken;
+        if (currentToken.type !== TokenType.Colon) {
+            return this.#error('":"', currentToken);
+        }
+        this.#advance();
+
         const results = this.#drawResults();
         if (results.isFailure()) {
             return results;
         }
-        return ok(new GameResult(...results.value));
+        return ok(new GameRecord(...results.value));
     }
 
     #drawResults(): ParserResult<DrawResult[]> {
@@ -141,7 +158,7 @@ export class Parser {
         }
 
         const number = Number(currentToken.value);
-
+        this.#advance();
         return ok(number);
     }
 
@@ -157,7 +174,6 @@ export class Parser {
         return this.#tokens.at(this.#position + 1)!;
     }
 
-    // @ts-expect-error
     #advance(): void {
         if (this.#currentToken.type === 'EOF') {
             return;
