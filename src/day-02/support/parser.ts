@@ -1,4 +1,5 @@
-import { Token } from './lexer';
+import { Token, TokenType } from './lexer';
+import { FailureResult, Result, failure, ok } from './result';
 
 export const enum AstNodeKind {
     GameLog = 'GameLog',
@@ -40,11 +41,11 @@ export class GameResult extends AstNode {
 }
 
 export class DrawResult extends AstNode {
-    readonly cubeDrawn: CubeResult[];
+    readonly cubesDrawn: CubeResult[];
 
-    constructor(...draws: CubeResult[]) {
+    constructor(...cubesDrawn: CubeResult[]) {
         super(AstNodeKind.DrawResult);
-        this.cubeDrawn = draws;
+        this.cubesDrawn = cubesDrawn;
     }
 }
 
@@ -59,10 +60,10 @@ export class CubeResult extends AstNode {
 
 export interface ParserError {
     expected: string;
-    found: string;
-    column: number;
-    line: number;
+    found: Token;
 }
+
+export type ParserResult<T> = Result<T, ParserError>;
 
 export class Parser {
     #tokens: Token[];
@@ -73,44 +74,87 @@ export class Parser {
         this.#position = 0;
     }
 
-    parse(): GameLog {
+    parse(): ParserResult<GameLog> {
         return this.#gameLog();
     }
 
-    #gameLog(): GameLog {
-        return new GameLog(...this.#gameResults());
+    #gameLog(): ParserResult<GameLog> {
+        const results = this.#gameResults();
+        if (results.isFailure()) {
+            return results;
+        }
+        return ok(new GameLog(...results.value));
     }
 
-    #gameResults(): GameResult[] {
-        return [this.#gameResult()];
+    #gameResults(): ParserResult<GameResult[]> {
+        const result = this.#gameResult();
+        if (result.isFailure()) {
+            return result;
+        }
+        return ok([result.value]);
     }
 
-    #gameResult(): GameResult {
-        return new GameResult(...this.#drawResults());
+    #gameResult(): ParserResult<GameResult> {
+        const results = this.#drawResults();
+        if (results.isFailure()) {
+            return results;
+        }
+        return ok(new GameResult(...results.value));
     }
 
-    #drawResults(): DrawResult[] {
-        return [this.#drawResult()];
+    #drawResults(): ParserResult<DrawResult[]> {
+        const result = this.#drawResult();
+        if (result.isFailure()) {
+            return result;
+        }
+        return ok([result.value]);
     }
 
-    #drawResult(): DrawResult {
-        return new DrawResult(...this.#cubeResults());
+    #drawResult(): ParserResult<DrawResult> {
+        const results = this.#cubeResults();
+        if (results.isFailure()) {
+            return results;
+        }
+        return ok(new DrawResult(...results.value));
     }
 
-    #cubeResults(): CubeResult[] {
-        return [this.#cubeResult()];
+    #cubeResults(): ParserResult<CubeResult[]> {
+        const result = this.#cubeResult();
+        if (result.isFailure()) {
+            return result;
+        }
+        return ok([result.value]);
     }
 
-    #cubeResult(): CubeResult {
-        return new CubeResult(this.#positiveNumber());
+    #cubeResult(): ParserResult<CubeResult> {
+        const amountResult = this.#positiveNumber();
+        if (amountResult.isFailure()) {
+            return amountResult;
+        }
+        return ok(new CubeResult(amountResult.value));
     }
 
-    #positiveNumber(): number {
-        return 1;
+    #positiveNumber(): ParserResult<number> {
+        const currentToken = this.#currentToken;
+        if (currentToken.type !== TokenType.Number) {
+            return this.#error('positive number', currentToken);
+        }
+
+        const number = Number(currentToken.value);
+
+        return ok(number);
     }
 
     get #currentToken(): Token {
         return this.#tokens.at(this.#position)!;
+    }
+
+    // @ts-expect-error
+    get #nextToken(): Token {
+        if (this.#currentToken.type === TokenType.EOF) {
+            return this.#tokens.at(-1)!;
+        }
+        return this.#tokens.at(this.#position + 1)!;
     }
 
     // @ts-expect-error
@@ -119,5 +163,9 @@ export class Parser {
             return;
         }
         this.#position++;
+    }
+
+    #error(expected: string, found: Token): FailureResult<ParserError> {
+        return failure({ expected, found });
     }
 }
