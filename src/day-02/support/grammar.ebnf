@@ -1,0 +1,32 @@
+(*
+    gameLog consists of at least one gameResult
+    each gameResult is put on separate lines
+*)
+gameLog = gameResult , { newLine , gameResult } ;
+
+(* represents result of one game *)
+gameResult = 'Game' , gameID , ':' drawResults ;
+
+drawResults = drawResult , { ';' , drawResult } ;
+
+(* gameID is a natural number (1..N) *)
+gameID = positiveNumber
+
+(*
+    drawResult consists of 1 to 3 cubeDraws where every cubeDraw is unique
+    Note: such form of production rule was suggested by ChatGPT 3.5, it could
+    be that there is a better form to express this requirement
+*)
+drawResult = cubeDraw, [ ',' , cubeDraw - cubeDraw , [ ',' , [ cubeDraw - cubeDraw ]]] ;
+
+(* cubeDraw can be one of colored cubeDraws*)
+cubeDraw = positiveNumber , cubeColor ;
+
+cubeColor = 'red' | 'green' | 'blue' ;
+
+(* linux new-line characters*)
+newLine = '\n';
+
+positiveNumber = positiveDigit , { digit } ;
+positiveDigit = digit - '0' ;
+digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
