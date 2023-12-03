@@ -96,7 +96,7 @@ export class Parser {
 
     #gameRecord(): ParserResult<GameRecord> {
         let currentToken = this.#currentToken;
-        if (currentToken.type !== TokenType.Text && currentToken.value !== 'Game') {
+        if (currentToken.type !== TokenType.Text || currentToken.value !== 'Game') {
             return this.#error('"Game"', currentToken);
         }
         this.#advance();

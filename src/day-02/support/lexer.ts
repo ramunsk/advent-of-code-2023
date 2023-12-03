@@ -33,8 +33,8 @@ export class Lexer {
     }
 
     tokenize(): Token[] {
-        for (let i = 0; i < this.#sourceLength; i++) {
-            const char = this.#source[i];
+        for (let position = 0; position < this.#sourceLength; position++) {
+            const char = this.#source[position];
             const lastToken = this.#lastToken;
 
             switch (char) {
@@ -69,19 +69,30 @@ export class Lexer {
                 case '7':
                 case '8':
                 case '9':
-                    if (lastToken?.type === TokenType.Number) {
-                        lastToken.value += char;
-                    } else {
-                        this.#addToken(TokenType.Number, char);
-                    }
-                    this.#column++;
+                    // TODO: Ramunas - continue here
+                    // Tests might be needed as token positions are messed up
+                    let num = char;
+                    let isNumber = false;
+                    do {
+                        const nextChar = this.#source.at(position + 1)!;
+                        isNumber = nextChar >= '0' && nextChar <= '9';
+                        if (isNumber) {
+                            num += nextChar;
+                            position++;
+                        }
+                        this.#column++;
+                    } while (isNumber === true);
+                    this.#addToken(TokenType.Number, num);
                     break;
                 default:
-                    if (lastToken?.type === TokenType.Text) {
+                    // Text
+                    const previousChar = this.#source.at(position - 1);
+                    if (lastToken?.type === TokenType.Text && previousChar !== ' ') {
                         lastToken.value += char;
                     } else {
                         this.#addToken(TokenType.Text, char);
                     }
+                    this.#column++;
                     break;
             }
         }
