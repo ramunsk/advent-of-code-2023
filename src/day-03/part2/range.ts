@@ -1,10 +1,16 @@
+import { assert } from '../../common';
+
 export class Range {
     readonly start: number;
-    readonly end: number;
+    private _end: number;
 
     constructor(start: number, end: number) {
         this.start = start;
-        this.end = end;
+        this._end = end;
+    }
+
+    get end(): number {
+        return this._end;
     }
 
     toString(): string {
@@ -16,5 +22,10 @@ export class Range {
         const overlapping = this.start <= other.end && this.end >= other.start;
 
         return bordering || overlapping;
+    }
+
+    protected extend(byLength = 1): void {
+        assert(byLength >= 0, 'Cannot extend range: invalid value provided');
+        this._end += byLength;
     }
 }
