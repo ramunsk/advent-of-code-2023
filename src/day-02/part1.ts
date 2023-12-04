@@ -16,7 +16,7 @@ function logParserError(source: string, error: ParserError): void {
 
 const fileContent = readFileSync('./sample.txt', { encoding: 'utf-8' });
 const tokens = new Lexer(fileContent).tokenize();
-console.log(tokens.slice(0, 20).map((t) => [t.type, t.value, t.column]));
+// console.log(tokens.slice(0, 20).map((t) => [t.type, t.value, t.column]));
 
 const ast = new Parser(tokens).parse();
 if (ast.isFailure()) {
