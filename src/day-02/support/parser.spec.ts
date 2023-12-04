@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { Lexer } from './lexer';
 import { Parser } from './parser';
 
