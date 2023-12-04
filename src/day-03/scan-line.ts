@@ -29,6 +29,14 @@ export function scanLine(line: string, previousLine: string | undefined, nextLin
         }
         i++;
     }
+    if (num !== '') {
+        numberTokens.push({
+            value: Number(num),
+            start: i - num.length,
+            end: i - 1,
+        });
+        num = '';
+    }
     // console.log(numbers);
 
     let sum = 0;
@@ -40,8 +48,8 @@ export function scanLine(line: string, previousLine: string | undefined, nextLin
         // console.log('Token is:', token);
         // character before number
         let str = line.charAt(token.start - 1);
-        // console.log(`-- token: ${token.value} @${token.start}`);
-        // console.log(`-- char before: [${str}]`);
+        console.log(`-- token: ${token.value} @${token.start}`);
+        console.log(`-- char before: [${str}]`);
         if (specialSymbolRx.test(str)) {
             // console.log('including');
             sum += token.value;

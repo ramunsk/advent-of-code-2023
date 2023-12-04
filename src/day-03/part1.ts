@@ -23,3 +23,4 @@ for (let i = 0; i < lines.length; i++) {
 console.log('Total is:', total);
 // 498906 is too low :\
 // 530537 is too low :\
+// 531561 is correct answer !!!
