@@ -1,6 +1,13 @@
 import { Token, TokenType } from './lexer';
 import { FailureResult, Result, failure, ok } from './result';
 
+export interface AstNodeVisitor<T> {
+    visitGameLog(gameLog: GameLog): T;
+    visitGameRecord(gameRecord: GameRecord): T;
+    visitDrawResult(drawResult: DrawResult): T;
+    visitCubeResult(cubeResult: CubeResult): T;
+}
+
 export const enum AstNodeKind {
     GameLog = 'GameLog',
     GameRecord = 'GameRecord',
@@ -17,6 +24,8 @@ abstract class AstNode {
     constructor(kind: AstNodeKind) {
         this.kind = kind;
     }
+
+    abstract accept<T>(visitor: AstNodeVisitor<T>): T;
 }
 
 export class GameLog extends AstNode {
@@ -25,6 +34,10 @@ export class GameLog extends AstNode {
     constructor(...games: GameRecord[]) {
         super(AstNodeKind.GameLog);
         this.games = games ?? [];
+    }
+
+    accept<T>(visitor: AstNodeVisitor<T>): T {
+        return visitor.visitGameLog(this);
     }
 }
 
@@ -35,6 +48,10 @@ export class GameRecord extends AstNode {
         super(AstNodeKind.GameRecord);
         this.draws = draws;
     }
+
+    accept<T>(visitor: AstNodeVisitor<T>): T {
+        return visitor.visitGameRecord(this);
+    }
 }
 
 export class DrawResult extends AstNode {
@@ -43,6 +60,10 @@ export class DrawResult extends AstNode {
     constructor(...cubesDrawn: CubeResult[]) {
         super(AstNodeKind.DrawResult);
         this.cubesDrawn = cubesDrawn;
+    }
+
+    accept<T>(visitor: AstNodeVisitor<T>): T {
+        return visitor.visitDrawResult(this);
     }
 }
 
@@ -54,6 +75,10 @@ export class CubeResult extends AstNode {
         super(AstNodeKind.CubeResult);
         this.amount = amount;
         this.color = color;
+    }
+
+    accept<T>(visitor: AstNodeVisitor<T>): T {
+        return visitor.visitCubeResult(this);
     }
 }
 
