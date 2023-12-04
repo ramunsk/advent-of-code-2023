@@ -4,6 +4,10 @@ function makeProjectConfig(folder) {
         preset: 'ts-jest',
         displayName: folder,
         testMatch: [`<rootDir>/src/${folder}/**/*.spec.ts`],
+        transform: {
+            'node_modules/chalk/.+\\.(j|t)sx?$': 'ts-jest',
+        },
+        // transformIgnorePatterns: [`<rootDir>/node_modules/`],
     };
     return projectConfig;
 }
