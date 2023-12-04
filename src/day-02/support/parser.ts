@@ -43,9 +43,11 @@ export class GameLog extends AstNode {
 
 export class GameRecord extends AstNode {
     readonly draws: DrawResult[];
+    readonly gameId: number;
 
-    constructor(...draws: DrawResult[]) {
+    constructor(gameId: number, ...draws: DrawResult[]) {
         super(AstNodeKind.GameRecord);
+        this.gameId = gameId;
         this.draws = draws;
     }
 
@@ -155,7 +157,7 @@ export class Parser {
         if (results.isFailure()) {
             return results;
         }
-        return ok(new GameRecord(...results.value));
+        return ok(new GameRecord(gameId.value, ...results.value));
     }
 
     private drawResults(): ParserResult<DrawResult[]> {
