@@ -13,6 +13,7 @@
         "noUnusedParameters": true,
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
+        "noImplicitOverride": true,
         "esModuleInterop": true,
         "moduleResolution": "bundler"
     },
